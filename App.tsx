@@ -1,30 +1,62 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Sidebar from './components/Sidebar';
 import ChatSection from './components/ChatSection';
 import MediaSection from './components/MediaSection';
 import LiveSection from './components/LiveSection';
 import TTSSection from './components/TTSSection';
 import TikTokSection from './components/TikTokSection';
+import AuthSection from './components/AuthSection';
 import { AppView } from './types';
+import { supabase } from './services/supabase';
 
 const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<AppView>(AppView.DASHBOARD);
+  const [session, setSession] = useState<any>(null);
+  const [isInitializing, setIsInitializing] = useState(true);
+
+  useEffect(() => {
+    // Verificar sessão inicial
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setIsInitializing(false);
+    });
+
+    // Escutar mudanças na autenticação
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+  };
 
   const renderContent = () => {
     switch (currentView) {
       case AppView.DASHBOARD:
         return (
           <div className="max-w-5xl mx-auto py-8 px-6 overflow-y-auto h-full custom-scrollbar pb-20">
-            <header className="mb-8">
-              <h1 className="text-3xl md:text-4xl font-extrabold mb-2 tracking-tight leading-tight">
-                <span className="gemini-text-gradient">Gerador de imagens e vídeos viral para TikTok Shop</span>
-              </h1>
-              <p className="text-slate-400 text-sm md:text-base font-medium">Crie conteúdo profissional de alto impacto com inteligência artificial de ponta.</p>
+            <header className="mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+              <div>
+                <h1 className="text-3xl md:text-4xl font-extrabold mb-2 tracking-tight leading-tight">
+                  <span className="gemini-text-gradient">Gerador viral para TikTok Shop</span>
+                </h1>
+                <p className="text-slate-400 text-sm md:text-base font-medium">Conectado como: <span className="text-indigo-400">{session?.user?.email}</span></p>
+              </div>
+              <div className="flex items-center gap-3">
+                <button 
+                  onClick={handleLogout}
+                  className="glass px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-red-400 hover:border-red-500/30 transition-all"
+                >
+                  Sair
+                </button>
+              </div>
             </header>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-12">
-              {/* Feature Principal: TikTok Creator */}
               <button 
                 onClick={() => setCurrentView(AppView.TIKTOK)}
                 className="col-span-1 md:col-span-2 glass p-6 md:p-8 rounded-[2rem] text-left hover:border-indigo-500/50 transition-all group relative overflow-hidden border-2 border-indigo-500/10"
@@ -42,7 +74,7 @@ const App: React.FC = () => {
                        <span className="bg-indigo-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded tracking-widest uppercase">Popular</span>
                     </div>
                     <p className="text-slate-400 text-xs md:text-sm leading-relaxed max-w-lg">
-                      Transforme fotos ou vídeos de produtos em anúncios verticais de 8s. Análise de mídia avançada com ganchos virais e gatilhos de escassez integrados no fluxo pencil.
+                      Transforme fotos ou vídeos de produtos em anúncios verticais de 8s. Análise de mídia avançada com ganchos virais e proteção de copyright.
                     </p>
                   </div>
                   <div className="hidden lg:block text-slate-700 group-hover:text-indigo-500 transition-colors">
@@ -99,8 +131,8 @@ const App: React.FC = () => {
             <div className="p-4 glass border-amber-500/10 rounded-2xl flex items-center gap-4">
                <i className="fa-solid fa-circle-info text-amber-500 text-lg"></i>
                <p className="text-[11px] text-slate-400 leading-relaxed">
-                  Esta é a <strong>Versão Gratuita</strong>. Renderização ultra-realista em processamento. 
-                  <span className="text-indigo-400 ml-1 font-bold italic">Novas atualizações Pro chegando em breve!</span>
+                  Esta é a <strong>Versão Profissional</strong> vinculada à sua conta Supabase. 
+                  Seus dados agora são salvos na nuvem!
                </p>
             </div>
           </div>
@@ -120,11 +152,22 @@ const App: React.FC = () => {
     }
   };
 
+  if (isInitializing) {
+    return (
+      <div className="min-h-screen bg-[#020617] flex items-center justify-center">
+        <div className="w-12 h-12 border-b-2 border-indigo-500 rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
+  if (!session) {
+    return <AuthSection onAuthSuccess={() => {}} />;
+  }
+
   return (
     <div className="flex h-screen overflow-hidden bg-[#020617] text-slate-100">
       <Sidebar currentView={currentView} onViewChange={setCurrentView} />
       <main className="flex-1 overflow-hidden relative h-full">
-        {/* Decorative BG */}
         <div className="absolute top-[-5%] right-[-5%] w-[40%] h-[40%] bg-indigo-600/5 blur-[120px] rounded-full -z-10 animate-pulse"></div>
         <div className="absolute bottom-[-5%] left-[-5%] w-[30%] h-[30%] bg-purple-600/5 blur-[100px] rounded-full -z-10"></div>
         {renderContent()}

@@ -57,11 +57,11 @@ const TikTokSection: React.FC = () => {
     if (!generatedPrompt) return;
     setIsGenerating(true);
     try {
-      const hasKey = await (window as any).aistudio.hasSelectedApiKey();
+      const hasKey = await (window as any).aistudio?.hasSelectedApiKey();
       if (!hasKey) {
-        await (window as any).aistudio.openSelectKey();
+        await (window as any).aistudio?.openSelectKey();
       }
-      const url = await GeminiService.generateVideo(generatedPrompt, 'veo-3.1-generate-preview', '9:16');
+      const url = await GeminiService.generateVideo(generatedPrompt, 'veo-3.1-fast-generate-preview', '9:16');
       setVideoUrl(url);
     } catch (err) {
       console.error(err);
@@ -107,9 +107,8 @@ const TikTokSection: React.FC = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        {/* Lado Esquerdo */}
+        {/* Lado Esquerdo - Controles */}
         <div className="lg:col-span-7 space-y-6">
-          
           <section className="glass rounded-3xl p-6 shadow-xl relative border-white/5 overflow-hidden group">
             <div className="relative z-10">
               <div className="flex items-center gap-3 mb-4">
@@ -127,7 +126,7 @@ const TikTokSection: React.FC = () => {
               >
                 {selectedMedia ? (
                   mediaType === 'image' ? (
-                    <img src={`data:${mediaMime};base64,${selectedMedia}`} className="w-full h-full object-contain p-2 rounded-2xl" />
+                    <img src={`data:${mediaMime};base64,${selectedMedia}`} className="w-full h-full object-contain p-2 rounded-2xl" alt="Preview" />
                   ) : (
                     <div className="flex flex-col items-center gap-2 text-center">
                        <i className="fa-solid fa-video-slash text-5xl text-indigo-400 animate-pulse"></i>
@@ -220,11 +219,11 @@ const TikTokSection: React.FC = () => {
                   </>
                 )}
               </button>
-            </div>
+            </section>
           )}
         </div>
 
-        {/* Lado Direito */}
+        {/* Lado Direito - Mobile Preview */}
         <div className="lg:col-span-5">
           <div className="sticky top-4 flex flex-col items-center">
             <div className="w-full max-w-[300px] aspect-[9/16] bg-slate-950 rounded-[2.5rem] border-[10px] border-slate-900 shadow-2xl relative overflow-hidden ring-1 ring-white/10">
@@ -260,7 +259,7 @@ const TikTokSection: React.FC = () => {
               {/* Card de Compra */}
               <div className="absolute bottom-24 left-3 right-3 z-20 bg-white rounded-lg p-2 flex items-center gap-3 animate-bounce shadow-2xl border-2 border-indigo-500">
                  <div className="w-10 h-10 bg-slate-100 rounded flex items-center justify-center overflow-hidden border border-slate-200">
-                    {selectedMedia && mediaType === 'image' && <img src={`data:${mediaMime};base64,${selectedMedia}`} className="w-full h-full object-cover" />}
+                    {selectedMedia && mediaType === 'image' && <img src={`data:${mediaMime};base64,${selectedMedia}`} className="w-full h-full object-cover" alt="Product thumbnail" />}
                     {selectedMedia && mediaType === 'video' && <i className="fa-solid fa-play text-slate-400 text-xs"></i>}
                  </div>
                  <div className="flex-1">
